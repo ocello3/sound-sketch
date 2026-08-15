@@ -83,33 +83,3 @@ gateの考え方：イベントの開始と終了を信号として扱える
 鳥なら、鳴き始めめ（gate = 1）、鳴き終わる（gate = 0）
 */
 
-// Bus System
-/* 信号の通路｜音や制御信号が流れるための共有の通路
-UGen
-    ↓
-Synth（小さな回路）
-    ↓
-Bus（配線）
-    ↓
-Synth（別の回路）
-    ↓
-Group（システム）
-
-*/
-(
-b = Bus.audio(s, 1);
-SynthDef(\osc, {
-	Out.ar(
-		bus: b, // スピーカーではなく、バスbへ送る
-		chnannelsArray: Saw.ar(220, 0.2)
-	);
-}).add;
-SynthDef(\filter, {
-    var sig;
-    sig = In.ar(b, 1); // バスbから受け取る
-    sig = LPF.ar(sig, 800);
-    Out.ar(0, sig);
-}).add;
-)
-y = Synth(\filter);
-x = Synth(\osc);

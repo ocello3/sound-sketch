@@ -1,43 +1,10 @@
-// #24 Dust
-// filter
-(
-{
-	var trigger = Dust.kr(12);
-	var env = EnvGen.kr(
-		Env.perc(0.001, 0.03),
-		trigger
-	);
-	var noise = WhiteNoise.ar;
-	var sig = HPF.ar(noise, 4000);
-	sig = sig * env * 0.08;
-	[sig, sig]
-}.play;
-)
-
-// rain simulation
-(
-{
-	var densitiy = LFNoise1.kr(0.2).range(1, 4);
-	var trigger = Dust.kr(densitiy);
-	var env = EnvGen.kr(
-		Env.perc(0.001, 0.3),
-		trigger
-	);
-	var sig = WhiteNoise.ar;
-	sig = HPF.ar(sig, 2000);
-	sig = sig * env * 0.08;
-	[sig, sig]
-}.play;
-)
-
-// #25 Resonator
 // Exciter（励振）とResonator（共鳴）
 (
 {
 	var trig = Dust.kr(2);
 	var env = EnvGen.kr(
 		Env.perc(0.001, 0.01),
-		trig
+		gate: trig
 	);
 	var exciter = WhiteNoise.ar * env;
 	var sig = Ringz.ar(
@@ -56,7 +23,7 @@
 	var trigger = Dust.kr(1);
 	var env = EnvGen.kr(
 		Env.perc(0.001, 0.01),
-		trigger
+		gate: trigger
 	);
 	var exciter = WhiteNoise.ar * env;
 	var sig =
@@ -119,8 +86,3 @@
 	[sig, sig]
 }.play;
 )
-
-
-
-
-
