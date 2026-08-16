@@ -1,3 +1,6 @@
+s.boot;
+s.quit;
+
 // Exciter（励振）とResonator（共鳴）
 (
 {
@@ -6,18 +9,18 @@
 		Env.perc(0.001, 0.01),
 		gate: trig
 	);
-	var exciter = WhiteNoise.ar * env;
+	var exciter = WhiteNoise.ar * env * 0.3; // エネルギー＝励振信号
 	var sig = Ringz.ar(
 		exciter,
 		freq: 1200,
-		decaytime: 2
+		decaytime: 1.3
 	);
-	[sig, sig] * 0.2
+	[sig, sig] * 0.4
 }.play;
 )
 
-// #26 multipe resonance
-// Modes - 複数の固有振動
+// 複数のRingzを重ねる
+// 物質は一般的に複数の固有振動を持つので、複数のRingzを重ねることで、よりリアルな音を作ることができる
 (
 {
 	var trigger = Dust.kr(1);
@@ -25,17 +28,33 @@
 		Env.perc(0.001, 0.01),
 		gate: trigger
 	);
-	var exciter = WhiteNoise.ar * env;
+	var exciter = WhiteNoise.ar * env * 0.3;
 	var sig =
 	Ringz.ar(exciter, freq: 30, decaytime: 1) +
 	Ringz.ar(exciter, freq: 200, decaytime: 0.5) +
 	Ringz.ar(exciter, freq: 300, decaytime: 0.3);
-	sig = sig * 0.15;
+	sig = sig * 0.4;
+	[sig, sig]
+}.play;
+)
+(
+{
+	var trigger = Dust.kr(1);
+	var env = EnvGen.kr(
+		Env.perc(0.001, 0.01),
+		gate: trigger
+	);
+	var exciter = WhiteNoise.ar * env * 0.3;
+	var sig =
+	Ringz.ar(exciter, freq: 30, decaytime: 1) +
+	Ringz.ar(exciter, freq: 200, decaytime: 0.5) +
+	Ringz.ar(exciter, freq: 300, decaytime: 0.3);
+	sig = sig * 0.4;
 	[sig, sig]
 }.play;
 )
 
-// #27 Klank = multipe Ringz
+// Klank（複数のRingzを実装しやすくする関数）
 (
 {
 	var trigger = Dust.kr(1);
@@ -43,26 +62,22 @@
 		Env.perc(0.001, 0.01),
 		trigger
 	);
-	var exciter = WhiteNoise.ar * env;
+	var exciter = WhiteNoise.ar * env * 0.3;
 	var sig = Klank.ar(
-		`[
-			[1000, 1800, 3200], // freq
+		`[ // バッククオートは参照を渡すための演算子（Ref Array）信号データと設定データを区別するため
+			[600, 1100, 2700], // freq: 共鳴周波数
 			[1.0, 0.4, 0.15], // amplitude
-			[2.0, 5.0, 8.0] // reduction time
+			[2.0, 5.0, 8.0] // reduction time: 減衰時間
 		],
 		exciter
 	);
-	sig = sig * 0.15;
+	sig = sig * 0.4;
 	[sig, sig]
 }.play;
 )
 
-// #28 grammer - backquate
-// Klank -> Ref（Arrayへの参照を渡す） -> Array
-// 信号データと設定データの区別のためにRef形式にする
-// `は参照にする演算子
-
-// #29 DynKlank パラメータが時間変化するKlank
+// DynKlank パラメータが時間変化するKlank
+// 応用例：コップに水を入れると音程が下がる、弦を押さえると長さが変わる、ドアを少し開けると共鳴が変わる
 (
 {
 	var trigger = Dust.kr(density: 2.0);

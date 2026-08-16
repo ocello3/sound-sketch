@@ -93,3 +93,24 @@ y = Synth(\filteredSaw, [
 	\inBus, c
 ]);
 )
+
+// Control Bus for Design controller（windなどをコントロールするためのさらに上位のパラメータ）
+(
+~weatherBus = Bus.control(server: s, numChannels: 1); // 複数の関数から参照するためvarではなく~としている
+
+~world = {
+	var weather = LFNoise1.kr(freq: 0.01).range(0.5, 2.0);
+	Out.kr(bus: ~weatherBus, channelsArray: weather); // ~weatherBusに値を送る
+	Silent.ar(2); // 無音. SynthDefではarオブジェクトを返す必要があるため
+}.play;
+
+~rain = {
+	var weather = In.kr(bus: ~weatherBus, numChannels: 1); // ~weatherBusから値を受け取る
+	var trigger = Dust.kr(density: weather * 3);
+	var envelope = EnvGen.kr(
+		Env.perc(attackTime: 0.001, releaseTime: 0.01), gate: trigger
+	);
+	var output = WhiteNoise.ar(mul: envelope * 0.3);
+	[output, output]
+}.play;
+)

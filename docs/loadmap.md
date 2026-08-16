@@ -34,6 +34,11 @@ Allpass
 Ringz
 LeakDC
 
+次の数回は、この流れをさらに発展させていきます。
+複数のControllerを組み合わせる（速い変化と遅い変化を重ねる）
+Busを使って同じControl Signalを複数のSynthで共有する
+Patterns を導入して、「イベントを記述する」という別の世界を見る
+
 第3部 Patterns
 
 第4部 Buffer
