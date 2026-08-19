@@ -23,3 +23,34 @@ Acceleration - Integrator -> Velocity - Integrator -> Position
 	)
 }.scope;
 )
+
+// #StateをIntegrate（蓄積）する
+(
+{
+	// ----- Variables ----- //
+	var weather01;
+	var rainAmount;
+	var wetness01;
+	var brightness;
+	var output;
+
+	// ----- State ----- //
+	weather01 = LFNoise1.kr(freq: 0.05).range(0.0, 1.0);
+	rainAmount = weather01 - 0.5;
+	wetness01 = Integrator.kr(in: rainAmount * 0.002, coef: 0.999);
+	wetness01 = wetness01.clip(0.0, 1.0);
+
+	// ----- Mapping ----- //
+	brightness = wetness01.linlin(0.0, 1.0, 6000, 800);
+
+	// ----- Sound ----- //
+	output = PinkNoise.ar(mul: 0.5);
+	output = HPF.ar(in: output, freq: brightness);
+	output = Pan2.ar(in: output, pos: 0);
+
+	// -----Safety ----- //
+	output = LeakDC.ar(output);
+	output = Limiter.ar(output);
+	output;
+}.play;
+)

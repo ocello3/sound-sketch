@@ -1,7 +1,4 @@
-// #50 Describe State in Code
-
-s.boot;
-s.quit;
+// Stateは変数ではなく信号であることを意識する
 
 (
 {
@@ -17,7 +14,7 @@ s.quit;
 	// ----- State ----- //
 	weather01 = LFNoise1.kr(freq: 0.01).range(0.0, 1.0);
 	wind01 = (LFNoise2.kr(freq: 0.3).range(0.0, 1.0) * 0.2)
-	+ (weather01 * 0.8);
+	+ (weather01 * 0.8); // weatherがwindに少し影響する
 
 	// ----- Mapping ----- //
 	panSpread = wind01.linlin(0.0, 0.1, 0.1, 1.0);
@@ -35,7 +32,8 @@ s.quit;
 }.play;
 )
 
-// #51 State with Time Record (Lag)
+
+// Lagを用いることでStateは時間の履歴を保有することができる
 (
 {
 	var weather01;
@@ -46,7 +44,7 @@ s.quit;
 
 	// ----- State ----- //
 	weather01 = LFNoise1.kr(freq: 0.05).range(0.0, 0.1);
-	wetness01 = Lag.kr(in: weather01, lagTime: 5.0); // slow change
+	wetness01 = Lag.kr(in: weather01, lagTime: 5.0); // Lagにより信号の変化を遅らせる
 
 	// ----- Mapping ----- //
 	trigger = Dust.kr(density: wetness01.linexp(0.0, 1.0, 0.5, 8.0));
@@ -65,7 +63,7 @@ s.quit;
 }.play;
 )
 
-// #52 Difference Response Speed by Lag
+// Lagでの複数の反応時間
 /*
 Weather
     │
@@ -112,86 +110,3 @@ Weather
 	output;
 }.play;
 )
-
-// #53 Integrated State
-(
-{
-	// ----- Variables ----- //
-	var weather01;
-	var rainAmount;
-	var wetness01;
-	var brightness;
-	var output;
-
-	// ----- State ----- //
-	weather01 = LFNoise1.kr(freq: 0.05).range(0.0, 1.0);
-	rainAmount = weather01 - 0.5;
-	wetness01 = Integrator.kr(in: rainAmount * 0.002, coef: 0.999);
-	wetness01 = wetness01.clip(0.0, 1.0);
-
-	// ----- Mapping ----- //
-	brightness = wetness01.linlin(0.0, 1.0, 6000, 800);
-
-	// ----- Sound ----- //
-	output = PinkNoise.ar(mul: 0.5);
-	output = HPF.ar(in: output, freq: brightness);
-	output = Pan2.ar(in: output, pos: 0);
-
-	// -----Safety ----- //
-	output = LeakDC.ar(output);
-	output = Limiter.ar(output);
-	output;
-}.play;
-)
-
-// #54 State of Material
-(
-{
-	// ----- Variables ----- //
-	var material01;
-
-	var resonanceFreq;
-	var decayTime;
-	var brightness;
-
-	var trigger;
-	var env;
-
-	var excitation;
-	var output;
-
-	// ----- State ----- //
-	material01 = 1.0;
-
-	// ----- Mapping ----- //
-	resonanceFreq = material01.linexp(0.0, 1.0, 500, 5000);
-	decayTime = material01.linlin(0.0, 1.0, 0.08, 2.0);
-	brightness = material01.linlin(0.0, 1.0, 2500, 7000);
-
-	// ----- Excitation ----- //
-	trigger = Dust.kr(density: 1.5);
-	env = EnvGen.kr(
-		Env.perc(attackTime: 0.01, releaseTime: 0.1),
-		gate: trigger
-	);
-	excitation = WhiteNoise.ar(mul: env * 0.5);
-	excitation = HPF.ar(in: excitation, freq: brightness);
-
-	// ----- Resonator ----- //
-	output = Ringz.ar(in: excitation, freq: resonanceFreq, decaytime: decayTime);
-	output = Pan2.ar(output);
-
-	// ----- Safety ----- //
-	output = output;
-	output = LeakDC.ar(output);
-	output = HPF.ar(output, freq: 20);
-	output = Limiter.ar(output);
-	output;
-}.play;
-)
-
-// #55 Multiple Role in One State
-
-
-
-

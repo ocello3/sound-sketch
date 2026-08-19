@@ -101,3 +101,49 @@ s.quit;
 	[sig, sig]
 }.play;
 )
+
+// 素材の性質をStateと捉えて関連するパラメータを一元的に調整する
+(
+{
+	// ----- Variables ----- //
+	var material01;
+
+	var resonanceFreq;
+	var decayTime;
+	var brightness;
+
+	var trigger;
+	var env;
+
+	var excitation;
+	var output;
+
+	// ----- State ----- //
+	material01 = 0.6;
+
+	// ----- Mapping ----- //
+	resonanceFreq = material01.linexp(0.0, 1.0, 500, 5000);
+	decayTime = material01.linlin(0.0, 1.0, 0.08, 2.0);
+	brightness = material01.linlin(0.0, 1.0, 2500, 7000);
+
+	// ----- Excitation ----- //
+	trigger = Dust.kr(density: 1.5);
+	env = EnvGen.kr(
+		Env.perc(attackTime: 0.01, releaseTime: 0.1),
+		gate: trigger
+	);
+	excitation = WhiteNoise.ar(mul: env * 0.5);
+	excitation = HPF.ar(in: excitation, freq: brightness);
+
+	// ----- Resonator ----- //
+	output = Ringz.ar(in: excitation, freq: resonanceFreq, decaytime: decayTime);
+	output = Pan2.ar(output);
+
+	// ----- Safety ----- //
+	output = output;
+	output = LeakDC.ar(output);
+	output = HPF.ar(output, freq: 20);
+	output = Limiter.ar(output);
+	output;
+}.play;
+)
