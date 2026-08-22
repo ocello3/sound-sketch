@@ -139,6 +139,10 @@ s.quit;
 	output = Ringz.ar(in: excitation, freq: resonanceFreq, decaytime: decayTime);
 	output = Pan2.ar(output);
 
+	// ----- DetectSilence ------ //
+	// doneAction: 2を設定しない場合、cpu使用率が増加し続けるため、silenceを検知してsynthを解放する
+	DetectSilence.ar(in: output, amp: 0.0001, time: 0.1, doneAction: 2);
+
 	// ----- Safety ----- //
 	output = output;
 	output = LeakDC.ar(output);
