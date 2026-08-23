@@ -3,15 +3,36 @@ s.quit;
 /*
 todo
 resonanceを~material01を使ってパラメータをコントロールしたい
-mixerを整備する：シグナルを変数でまとめる
 */
 
 (
+
+// Audio Bus
+~windBus = Bus.audio(s, 2);
+~rainBus = Bus.audio(s, 2);
+~resonanceBus = Bus.audio(s, 2);
+
+// Mixer
+~masterLevel = 1;
+~masterOutput = {
+	var wind, rain, resonance, output;
+	wind = In.ar(~windBus, 2);
+	rain = In.ar(~rainBus, 2);
+	resonance = In.ar(~resonanceBus, 2);
+	output = wind + rain + resonance;
+	output = output * ~masterLevel;
+	output = LeakDC.ar(output);
+	output = HPF.ar(output, freq: 20);
+	output = Limiter.ar(output);
+	Out.ar(0, output);
+}.play;
+
+// Control Bus
 ~material01 = 0.6; // 0=soft, 1=hard
 ~rain01 = 0.5; // 0=weak, 1=hard
 
 // 風の音
-{
+~wind = {
 	var base;
 	var wobble;
 	var cutoff;
@@ -21,11 +42,11 @@ mixerを整備する：シグナルを変数でまとめる
 	cutoff = base + wobble;
 	sig = WhiteNoise.ar(0.08);
 	sig = LPF.ar(sig, cutoff);
-	[sig, sig]
+	Out.ar(~windBus, [sig, sig]);
 }.play;
 
 // 雨の音
-{
+~rain = {
 	var densitiy = LFNoise1.kr(0.2).range(1, 4); // 雨の密度を調整できる
 	var trigger = Dust.kr(densitiy);
 	var env = EnvGen.kr(
@@ -35,9 +56,10 @@ mixerを整備する：シグナルを変数でまとめる
 	var sig = WhiteNoise.ar;
 	sig = HPF.ar(sig, 2000);
 	sig = sig * env * 0.1;
-	[sig, sig]
+	Out.ar(~rainBus, [sig, sig]);
 }.play;
 
+// Resonance
 SynthDef(\resonance, {
 	|freq = 60, decayTime = 1.3, brightness = 3000, amp = 0.3|
 	var env;
@@ -58,10 +80,7 @@ SynthDef(\resonance, {
 	DetectSilence.ar(in: output, amp: 0.0001, time: 0.1, doneAction: 2);
 	output = Pan2.ar(output);
 
-	Out.ar(
-		0,
-		output
-	);
+	Out.ar(~resonanceBus, output);
 }).add;
 
 Pbind(
@@ -74,15 +93,4 @@ Pbind(
 	\brightness, Pwhite(2500, 7000),
     \amp, Pwhite(0.1, 0.5, inf)
 ).play;
-)
-
-
-// output = Pan2.ar(output);
-
-// ----- Safety ----- //
-	output = output;
-	output = LeakDC.ar(output);
-	output = HPF.ar(output, freq: 20);
-	output = Limiter.ar(output);
-	output;
 )
