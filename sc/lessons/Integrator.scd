@@ -54,3 +54,30 @@ Acceleration - Integrator -> Velocity - Integrator -> Position
 	output;
 }.play;
 )
+
+// Integratorを使って状態の変化のコントール
+(
+{
+	var change;
+	var state;
+	change = LFNoise1.kr(freq: 0.3);
+	state = Integrator.kr(in: change, coef: 0.995);
+	state.poll(trig: 1, label: "state");
+	Silent.ar(2);
+}.play;
+)
+
+// Integratorを使った物理モデル
+// 速度を積分すると位置になる
+(
+{
+	var acceleration, velocity, position;
+	acceleration = LFNoise1.kr(freq: 0.2);
+	velocity = Integrator.kr(in: acceleration * 0.01, coef: 0.999); // 物理シミュレーションではなく、単に前の状態を強く保持するという意味でのcoef=0.999
+	position = Integrator.kr(in: velocity * 0.01, coef: 0.999);
+	acceleration.poll(trig: 1, label: "acceleration");
+	velocity.poll(trig: 1, label: "velocity");
+	position.poll(trig: 1, label: "position");
+	Silent.ar(2);
+}.play;
+)
