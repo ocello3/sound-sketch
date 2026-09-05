@@ -90,7 +90,7 @@ SuperColliderを使って、
 - [x] Klank
 - [x] Resonanceの考え方
 - [x] 複数共鳴
-- [ ] DynKlank
+- [x] DynKlank
 - [ ] Comb
 - [ ] Allpass
 - [ ] Reverb
@@ -143,8 +143,8 @@ SuperColliderを使って、
 - [ ] Comb filter
 - [ ] Allpass filter
 - [ ] ResonatorとしてのFeedback
-- [ ] Feedbackによる物理モデル
-- [ ] FeedbackとIntegratorの関係
+- [x] Feedbackによる物理モデル
+- [x] FeedbackとIntegratorの関係
 
 ---
 
