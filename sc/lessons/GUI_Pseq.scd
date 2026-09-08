@@ -2,9 +2,11 @@ s.quit;
 s.freeAll;
 
 (
-~state = (
-	currentStep: 0,
-	visualStep: 0
+~visualStep = 0;
+~musicState = (
+	step: 0,
+	degree: 0,
+	freq: 0
 );
 ~animation.stop;
 ~player.stop;
@@ -17,6 +19,12 @@ s.freeAll;
 	name: "Step Visualizer",
 	bounds: Rect(200, 200, ~width, ~height)
 ).front;
+
+~w.onClose = {
+	CmdPeriod.run; // windowを閉じた時にCmd + .を実行して全て停止する
+};
+
+~w.alwaysOnTop = true; // windowを最前面に固定する
 
 ~view = UserView(parent: ~w, bounds: Rect(0, 0, ~width, ~height));
 
@@ -32,7 +40,7 @@ s.freeAll;
 		x = (i + 1) * spacing;
 		y = ~height / 2 - (degree * ~height / 40);
 
-		if ((i - ~state[\visualStep]).abs < 0.5) {
+		if ((i - ~visualStep).abs < 0.5) {
 			size = 40;
 		} {
 			size = 20;
@@ -51,16 +59,20 @@ SynthDef(\stepTone, {
 
 ~player = Pbind( // Pbindは複数のPatternから値を取り出してEvent {step: 2, freq: 293, dur: 1}を作っている
 	\instrument, \stepTone,
-	\step, Pseq((0 .. (~degrees.size - 1)), inf), // GUIのために追加
+	\step, Pseq((0 .. (~degrees.size - 1)), inf), // GUIのために追加, [0, 1, 2, 3, 4, 5]
 	\degree, Pseq(~degrees, inf),
 	\root, 0,
 	\octave, 5,
 	\dur, 1,
 	\finish, { // Eventのplay処理前に実行され、Eventデータを操作できる
-		var step;
-		step = ~step; // deferされるタイミングは処理前なのでEventはnilであるため、初期化する
+		var state; // deferされるタイミングは処理前なのでEventはnilであるため、初期化する
+		state = (
+			step: ~step, // global変数ではなく、実行されているEventのEnvironmentから値を取得する記法
+			degree: ~degree,
+			freq: ~freq
+		);
 		{
-			~state[\currentStep] = step;
+			~musicState = state;
 			~view.refresh;
 		}.defer;
 	}
@@ -70,13 +82,10 @@ SynthDef(\stepTone, {
 	loop {
 		var difference;
 
-		difference = ~state[\currentStep] - ~state[\visualStep];
-		~state[\visualStep] = ~state[\visualStep] + (difference * 0.2);
+		difference = ~musicState[\step] - ~visualStep;
+		~visualStep = ~visualStep + (difference * 0.2);
 		~view.refresh;
 		(1 / 60).wait;
 	};
 }).play(AppClock);
 )
-
-
-
