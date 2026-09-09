@@ -1,5 +1,4 @@
 s.quit;
-s.freeAll;
 
 (
 ~visualStep = 0;
@@ -8,8 +7,6 @@ s.freeAll;
 	degree: 0,
 	freq: 0
 );
-~animation.stop;
-~player.stop;
 ~clock = TempoClock(80 / 60); // bpm = 80
 ~degrees = [0, 2, 4, 7, 4, 2];
 ~size = 500;
@@ -22,25 +19,26 @@ s.freeAll;
 	CmdPeriod.run; // windowを閉じた時にCmd + .を実行して全て停止する
 };
 ~w.alwaysOnTop = true; // windowを最前面に固定する
-~w.background = Color.white; // 背景色の指定
 
 ~view = UserView(parent: ~w, bounds: Rect(0, 0, ~size, ~size));
+~view.background = Color.white; // 背景色の指定
 
 ~view.drawFunc = {
 	var degreeRange, rectCount, margin, degreeHeight, rectWidth, rectHeight;
+	var stepProgress, totalWidth, startX, startY, currentX, pointSize;
 
-	degreeRange = 12: // 1 octave from tmp
+	// draw steps
+	degreeRange = 12; // 1 octave from tmp
 	rectCount = ~degrees.size;
 	margin = ~size * 0.1;
 	degreeHeight = (~size - (margin * 2)) / degreeRange;
-	rectWidth = (~size / rectCount) + (margin * 2);
+	rectWidth = (~size - (margin * 2)) / rectCount;
 	rectHeight = ~size * 0.01;
-
 	~degrees.do { |degree, i|
 		var x, y, color;
 
-		x = i * width + (width / 2);
-		y = ~height - ((degree * ~height / 12) + ());
+		x = margin + (i * rectWidth);
+		y = ~size - margin - (degree * degreeHeight);
 
 		if ((i - ~visualStep).abs < 0.5) {
 			color = Color.grey(0.0); // 0: black, 1: white
@@ -49,8 +47,18 @@ s.freeAll;
 		};
 
 		Pen.fillColor = color;
-		Pen.fillRect(Rect(x, y, width, height));
+		Pen.fillRect(Rect(x, y, rectWidth, rectHeight));
 	};
+
+	// draw progress
+	stepProgress = ~visualStep / ~degrees.size;
+	totalWidth = ~size - (margin * 2);
+	startX = margin + (rectWidth * 0.5);
+	startY = ~size - margin;
+	currentX = startX + (totalWidth * stepProgress);
+	pointSize = ~size * 0.01;
+	Pen.fillColor = Color.grey(0.0);
+	Pen.fillOval(Rect(currentX, startY, pointSize, pointSize));
 };
 
 SynthDef(\stepTone, {
@@ -68,7 +76,10 @@ SynthDef(\stepTone, {
 	\octave, 5,
 	\dur, 1,
 	\finish, { // Eventのplay処理前に実行され、Eventデータを操作できる
-		var state; // deferされるタイミングは処理前なのでEventはnilであるため、初期化する
+		// deferされるタイミングは処理前なのでEventはnilであるため、初期化する必要がある
+		// EventのEnvironmentから値を先に取り出してstateに保存する
+		// defer後はGUI側のEnvironmentで~musicStateを更新する
+		var state;
 		state = (
 			step: ~step, // global変数ではなく、実行されているEventのEnvironmentから値を取得する記法
 			degree: ~degree,
