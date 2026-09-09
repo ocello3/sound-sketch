@@ -12,41 +12,44 @@ s.freeAll;
 ~player.stop;
 ~clock = TempoClock(80 / 60); // bpm = 80
 ~degrees = [0, 2, 4, 7, 4, 2];
-~width = 500;
-~height = 200;
+~size = 500;
 
 ~w = Window(
 	name: "Step Visualizer",
-	bounds: Rect(200, 200, ~width, ~height)
+	bounds: Rect(200, 200, ~size, ~size)
 ).front;
-
 ~w.onClose = {
 	CmdPeriod.run; // windowを閉じた時にCmd + .を実行して全て停止する
 };
-
 ~w.alwaysOnTop = true; // windowを最前面に固定する
+~w.background = Color.white; // 背景色の指定
 
-~view = UserView(parent: ~w, bounds: Rect(0, 0, ~width, ~height));
+~view = UserView(parent: ~w, bounds: Rect(0, 0, ~size, ~size));
 
 ~view.drawFunc = {
-	var stepCount, spacing;
+	var degreeRange, rectCount, margin, degreeHeight, rectWidth, rectHeight;
 
-	stepCount = ~degrees.size;
-	spacing = ~width / (stepCount + 1);
+	degreeRange = 12: // 1 octave from tmp
+	rectCount = ~degrees.size;
+	margin = ~size * 0.1;
+	degreeHeight = (~size - (margin * 2)) / degreeRange;
+	rectWidth = (~size / rectCount) + (margin * 2);
+	rectHeight = ~size * 0.01;
 
 	~degrees.do { |degree, i|
-		var x, y, size;
+		var x, y, color;
 
-		x = (i + 1) * spacing;
-		y = ~height / 2 - (degree * ~height / 40);
+		x = i * width + (width / 2);
+		y = ~height - ((degree * ~height / 12) + ());
 
 		if ((i - ~visualStep).abs < 0.5) {
-			size = 40;
+			color = Color.grey(0.0); // 0: black, 1: white
 		} {
-			size = 20;
+			color = Color.grey(0.7);
 		};
 
-		Pen.fillOval(Rect(x - (size / 2), y - (size / 2), size, size));
+		Pen.fillColor = color;
+		Pen.fillRect(Rect(x, y, width, height));
 	};
 };
 
